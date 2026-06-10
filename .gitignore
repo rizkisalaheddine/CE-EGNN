@@ -22,11 +22,16 @@ venv/
 data/
 !data/.gitkeep
 
-# Outputs / logs / checkpoints
+# Generated artifacts
+models/
+notebooks/
 outputs/
 logs/
 runs/
 checkpoints/
+
+# Publication assets
+XAI4Science-paper7.pdf
 
 # OS-specific
 .DS_Store
