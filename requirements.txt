@@ -2,3 +2,5 @@ torch
 torch-geometric
 egnn-pytorch
 tqdm
+matplotlib
+networkx

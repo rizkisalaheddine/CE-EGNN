@@ -27,5 +27,5 @@ class TrainConfig:
     # Which property we are training on
     property_name: str = "mu"
 
-    patience: int = 10      # epochs without improvement before early stop
+    patience: int = 50      # epochs without improvement before early stop
     min_delta: float = 1e-4  # minimum MAE improvement to count

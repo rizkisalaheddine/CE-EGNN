@@ -1,4 +1,4 @@
-name: egnn_modern
+name: egnn_qm9
 channels:
   - pytorch
   - defaults
