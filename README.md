@@ -1,4 +1,4 @@
-# CE-EGNN for QM9
+# CE-EGNN : Counterfactual Explanations for Equivariant Graph Neural Networks
 
 Code accompanying the paper [*Counterfactual Explanations for Equivariant Graph Neural Networks: CE-EGNN for Molecular Property Regression*](https://edbticdt2026.github.io/workshop_papers/XAI4Science-paper7.pdf).
 
