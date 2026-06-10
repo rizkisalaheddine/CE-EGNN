@@ -1,36 +1,27 @@
-# Python
+# Python cache and build artifacts
 __pycache__/
 *.py[cod]
-*.pyo
-*.pyd
 *.so
 *.egg-info/
 *.egg
 
-# Virtual envs / conda stuff
+# Virtual environments
 .env/
 .venv/
 venv/
 .egnn_modern/
-.envrc
-*.swp
 
 # Jupyter
 .ipynb_checkpoints/
 
-# Data
+# Data and generated artifacts
 data/
 !data/.gitkeep
-
-# Generated artifacts
 models/
 notebooks/
 outputs/
-logs/
-runs/
-checkpoints/
 
-# Publication assets
+# Local paper copy
 XAI4Science-paper7.pdf
 
 # OS-specific
