@@ -1,13 +1,14 @@
 import argparse
 import json
 import os
+
 import numpy as np
 import torch
 
-from src.egnn_qm9.custom_model import EGNNQM9Model
-from src.egnn_qm9.data import load_qm9_splits, PROPERTY_TO_IDX
-from src.egnn_qm9.utils import load_trained_model
-from src.explainers.cf_explainer_egnn import CFExplainerEGNNRegressionTarget
+from src.egnn.custom_model import EGNNQM9Model
+from src.egnn.data import PROPERTY_TO_IDX, load_qm9_splits
+from src.egnn.utils import load_trained_model
+from src.cf_explainer.cf_explainer_egnn import CFExplainerEGNNRegressionTarget
 
 
 def main():
@@ -27,7 +28,6 @@ def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print("Using device:", device)
 
-    # ---- Load deterministic QM9 splits and iterate over test set ----
     (loaders, _, _, _) = load_qm9_splits(
         root="data/QM9",
         batch_size=args.batch_size,
@@ -42,12 +42,9 @@ def main():
     n_test = len(test_dataset)
     limit = n_test if args.max_graphs is None else min(args.max_graphs, n_test)
 
-    # Build model dimensions from first test graph
     sample = test_dataset[0]
     in_dim = sample.x.size(-1)
     edge_attr_dim = 0 if sample.edge_attr is None else sample.edge_attr.size(-1)
-
-    # ---- Build model and load trained weights ----
 
     model_cfg, state = load_trained_model(args.property, device)
 
@@ -58,13 +55,9 @@ def main():
         num_layers=model_cfg.get("num_layers", 7),
         update_coords=model_cfg.get("update_coords", False),
     ).to(device)
-
     model.load_state_dict(state)
     model.eval()
 
-    
-
-    # ---- Run counterfactual explainer ----
     explainer = CFExplainerEGNNRegressionTarget(model=model, beta=1e-4, device=device)
 
     per_graph = []
@@ -134,7 +127,6 @@ def main():
     mre_mean = float(np.mean(success_mres)) if success_mres else None
     mre_std = float(np.std(success_mres, ddof=0)) if success_mres else None
 
-    # Save results to JSON
     output_dir = f"outputs/counterfactuals/test_{args.property}_a{args.alpha}_tau{args.tau}_e{args.epochs}"
     os.makedirs(output_dir, exist_ok=True)
 
@@ -163,6 +155,7 @@ def main():
     print(f"Successes: {num_success}")
     print(f"MRE mean (successes): {mre_mean}")
     print(f"MRE std  (successes): {mre_std}")
+
 
 if __name__ == "__main__":
     main()

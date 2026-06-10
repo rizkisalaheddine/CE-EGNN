@@ -1,6 +1,6 @@
 torch
+numpy
 torch-geometric
-egnn-pytorch
 tqdm
 matplotlib
 networkx

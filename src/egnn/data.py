@@ -1,4 +1,4 @@
-# src/egnn_qm9/data.py
+# src/egnn/data.py
 
 import torch
 from torch_geometric.datasets import QM9

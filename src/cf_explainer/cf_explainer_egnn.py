@@ -1,10 +1,10 @@
 import torch
-import numpy as np
 import torch.optim as optim
 from torch.nn.utils import clip_grad_norm_
+from tqdm import tqdm
 
 from .egnn_perturb import EGNNQM9PerturbRegressionTarget
-from tqdm import tqdm
+
 
 class CFExplainerEGNNRegressionTarget:
     def __init__(self, model, beta, device):
@@ -28,21 +28,17 @@ class CFExplainerEGNNRegressionTarget:
     ):
         data = data.to(self.device)
 
-        # original prediction (graph-level)
         with torch.no_grad():
-            y_orig = self.model(data).squeeze()  # scalar (since one graph)
+            y_orig = self.model(data).squeeze()
         y_target = (1.0 + float(alpha)) * y_orig
 
-        # CF model
         cf_model = EGNNQM9PerturbRegressionTarget(self.model, data).to(self.device)
         cf_model.load_state_dict(self.model.state_dict(), strict=False)
 
-        # freeze all weights except edge mask params
-        for name, p in cf_model.named_parameters():
-            p.requires_grad = (name == "p")
+        for name, parameter in cf_model.named_parameters():
+            parameter.requires_grad = (name == "p")
 
         cf_model.beta = self.beta
-
         opt = optim.Adam([cf_model.p], lr=lr)
 
         eval_every = max(1, int(eval_every))
@@ -53,24 +49,18 @@ class CFExplainerEGNNRegressionTarget:
         best_loss = float("inf")
         epochs_since_best = 0
 
-        for epoch in tqdm(
-            range(num_epochs),
-            desc="CF Explainer Training",
-            disable=not verbose,
-        ):
+        for epoch in tqdm(range(num_epochs), desc="CF Explainer Training", disable=not verbose):
             cf_model.train()
             opt.zero_grad()
 
             y_cf_soft = cf_model(data).squeeze()
-
             err_soft = torch.abs(y_cf_soft.detach() - y_target)
             success = (err_soft <= tau).float()
 
-            # Use soft-prediction success for training; hard success is checked periodically.
             loss_total, loss_pred, loss_graph = cf_model.loss_regression_target(
                 y_cf_soft=y_cf_soft,
                 y_target=y_target,
-                success=success
+                success=success,
             )
 
             loss_total.backward()
@@ -81,8 +71,6 @@ class CFExplainerEGNNRegressionTarget:
                 with torch.no_grad():
                     p_soft = torch.sigmoid(cf_model.p)
                     print("p_soft min/max:", p_soft.min().item(), p_soft.max().item())
-
-            err_soft_value = err_soft.item()
 
             should_eval_hard = (
                 epoch == 0
@@ -112,8 +100,8 @@ class CFExplainerEGNNRegressionTarget:
                 print(
                     f"Epoch {epoch+1:04d} | "
                     f"loss={loss_total.item():.4f} pred={loss_pred.item():.4f} graph={loss_graph.item():.4f} | "
-                    f"y_orig={y_orig.item():.6f} y_target={(y_target).item():.6f} "
-                    f"{hard_part} | err_soft={err_soft_value:.6f} soft_success={int(success.item())}"
+                    f"y_orig={y_orig.item():.6f} y_target={y_target.item():.6f} "
+                    f"{hard_part} | err_soft={err_soft.item():.6f} soft_success={int(success.item())}"
                 )
 
             if success_hard and loss_total.item() < best_loss:

@@ -1,4 +1,4 @@
-# src/egnn_qm9/train.py
+# Custom EGNN training script for QM9 regression.
 
 import argparse
 import os
